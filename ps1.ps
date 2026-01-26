@@ -1,0 +1,266 @@
+# ================================
+# CONFIG
+# ================================
+$TenantId = "280cb568-d1dc-4a34-b94c-06544692d174"
+$ClientId = "280ab689-1156-4510-8f29-cbfe9566b8ef"
+$ClientSecret = "xgw8Q~Y_AVEt4yDNN3UcCbu4FCyop2b515QuMdr."
+# Key Vault details
+$KeyVaultName = "APITesttoken"
+$SecretName   = "test"
+# ================================
+# FORCE TLS 1.2
+# ================================
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+# ================================
+# GET TOKEN
+# ================================
+$tokenResponse = Invoke-RestMethod `
+  -Method POST `
+  -Uri "https://login.microsoftonline.com/$TenantId/oauth2/v2.0/token" 
+  -ContentType "application/x-www-form-urlencoded" `
+  -Body "client_id=$ClientId&client_secret=$ClientSecret&scope=https://vault.azure.net/.default&grant_type=client_credentials"
+$accessToken = $tokenResponse.access_token
+if (-not $accessToken) {
+    throw "Failed to acquire token"
+}
+Write-Host "Token acquired"
+# ================================
+# FETCH SECRET (HARDCODED URL)
+# ================================
+$headers = @{
+    Authorization = "Bearer $accessToken"
+}
+$secretResponse = Invoke-RestMethod `
+  -Method GET `
+  -Uri "https://APITesttoken.vault.azure.net/secrets/test?api-version=7.4" `
+  -Headers $headers
+# ================================
+# OUTPUT SECRET
+# ================================
+if ($null -eq $secretResponse.value) {
+    Write-Error "Secret request succeeded but value was not returned (permission issue)"
+    $secretResponse | ConvertTo-Json -Depth 10
+    exit 1
+}
+Write-Host "SECRET VALUE:"
+Write-Host $secretResponse.value 
+
+
+#TO write a function in powershell to add 5nos
+function Get-Greeting {
+    $a=2+3+4+5+6
+    return "the addition of any 5 nos is $a"
+}
+
+$s=Get-Greeting
+Write-Output $s
+
+#to replicate a simple calculator using functions in powershell:(hardcoded as of now)
+function calculator{
+    return "hello, welcome to calculator! what can i do for u?"
+    return "1.addition"
+    return "2.subtraction"
+    return "3.multiplication"
+    return "4.division"
+    
+}
+function add{
+    $a=12
+    $b=32
+    $c=$a+$b
+    return "addition of the numbers is $c"
+}
+
+function sub{
+    $a=32
+    $b=12
+    $c=$a-$b
+    return "subtraction of the numbers is $c"
+}
+function mult{
+    $a=32
+    $b=12
+    $c=$a*$b
+    return "multiplication of the numbers is $c"
+}
+function div{
+    $a=32
+    $b=12
+    $c=$a/$b
+    return "division of the numbers is $c"
+}
+
+$h=calculator
+Write-Output $h
+$g=add
+Write-Output $g
+$f=sub
+Write-Output $f
+$i=mult
+Write-Output $i
+$j=div
+Write-Output $j
+
+#creating a calculator using functions 
+function calculator{
+    return "hello, welcome to calculator! what can i do for u?"
+    return "1.addition"
+    return "2.subtraction"
+    return "3.multiplication"
+    return "4.division"
+    
+}
+function add{
+    param(
+        [parameter(Mandatory=$true)]
+        [int]$a,
+        [parameter(Mandatory=$true)]
+        [int]$b
+
+    )
+    $c=$a+$b
+    return "addition of the numbers is $c"
+
+}
+
+function sub{
+   param(
+        [parameter(Mandatory=$true)]
+        [int]$a,
+        [parameter(Mandatory=$true)]
+        [int]$b
+
+    )
+    $c=$a-$b
+    return "subtraction of the numbers is $c"
+
+}
+function mult{
+      param(
+        [parameter(Mandatory=$true)]
+        [int]$a,
+        [parameter(Mandatory=$true)]
+        [int]$b
+
+    )
+
+    $c=$a*$b
+    return "multiplication of the numbers is $c"
+}
+function div{
+      param(
+        [parameter(Mandatory=$true)]
+        [int]$a,
+        [parameter(Mandatory=$true)]
+        [int]$b
+
+    )
+    $c=$a/$b
+    return "division of the numbers is $c"
+}
+
+$h=calculator
+Write-Output $h
+add
+sub
+mult
+div
+
+
+
+function running{
+    Get-Service | Where-Object {$_.Status -eq "running"}
+
+}
+function stopped{                
+    Get-Service | Where-Object {$_.Status -eq "stopped"}
+}
+$g=running
+Write-Output "these are the running services: "$g
+$h=stopped
+Write-Output "these are the stopped services: "$h
+
+
+#input--->service name and it shld show its status i.e, running or stopped ;remove the display name
+#input parameter----->what info needed? need to provide info needed current date
+function get-status{
+    param(
+        [parameter(Mandatory=$true)]
+        [string]$info 
+
+    )
+    $time = Get-Date -Format "dd-MM-yyyy"
+    return $time
+}
+get-status
+
+
+##how much ram to know:
+#input--->service name and it shld show its status i.e, running or stopped ;remove the display name
+#input parameter----->what info needed? need to provide info needed current date
+
+function get-ram{
+    param(
+        [parameter(Mandatory=$true)]
+        [string]$info
+
+    )
+    $TotalRAM = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
+    return $TotalRAM
+   # [math]::Round($TotalRAM / 1GB, 2)
+
+}
+get-ram
+
+#non-working code
+#automatically check c drive free space and show a warning if its below a limit
+function Test-PSDriveSpace {
+    param (
+        [string]$Drive = "C:",
+        [int]$MinFreeGB = 382
+    )
+
+
+    $disk = Get-CimInstance Win32_LogicalDisk | 
+            Where-Object { $_.DeviceID -eq $Drive }  #heart of the program
+
+    if (-not $disk) {
+        Write-Host "Drive $Drive not found."
+        return #exit the function
+    }
+
+    $freeGB = [math]::Round($disk.FreeSpace / 1GB, 2)
+
+    if ($freeGB -lt $MinFreeGB) {
+        Write-Host "WARNING: Low disk space on $Drive — Free: $freeGB GB"
+    }
+    else {
+        Write-Host "OK: Disk space on $Drive is healthy — Free: $freeGB GB"
+    }
+}
+
+Test-PSDriveSpace
+
+#babas code:
+function Test-PSDriveSpace {
+    param (
+        [string]$Drive = "C:",
+        [int]$MinFreeGB = 30
+    )
+    $disk = Get-CimInstance Win32_LogicalDisk |Where-Object {$_.DeviceID -eq $Drive } 
+    if (-not $disk) {
+        Write-Output "Drive not found"
+        return # exit the function
+    }
+    $freeGB = [math]::Round($disk.FreeSpace / 1GB, 2)
+    Write-Output "Free space detected: $freeGB GB"
+
+    # freeGB = 62GB and MinFreeGB = 30GB
+    if ($freeGB -lt $MinFreeGB) {
+        Write-Output "WARNING: Low disk space"
+    }
+    else {
+        Write-Output "OK: Disk space is healthy"
+    }
+}
+Test-PSDriveSpace
