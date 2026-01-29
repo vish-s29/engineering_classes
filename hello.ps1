@@ -1,34 +1,36 @@
-function Test-PSDriveSpace {
-    param (
-        [string]$Drive = "C:",
-        [int]$MinFreeGB = 382
+#Write a function Get-FileSize that does the following:
+#Takes a file path as input
+#Uses try { } catch { }
+#If file exists → return size------->how to return size?
+#If file does not exist → show a friendly error message
+
+function Get-FileSize{
+    param(
+        [parameter(Mandatory=$true)]
+        [string]$filepath,
+        [parameter(Mandatory=$true)]
+        [string]$filename
     )
+     try{
+    $path = Get-ChildItem -path $filepath\$filename -ErrorAction SilentlyContinue
+    $size = [math]::Round($path.Length / 1KB, 2)
 
-    $disk = Get-CimInstance Win32_LogicalDisk | 
-            Where-Object { $_.DeviceID -eq $Drive }  #heart of the program
-
-    if (-not $disk) {
-        Write-Host "Drive $Drive not found."
-        return #exit the function
+    if(-not $path){
+        return "file doesnt exist!"
+       
     }
 
-    $freeGB = [math]::Round($disk.FreeSpace / 1GB, 2)
-
-  
-
-
-
-
- if ($freeGB -lt $MinFreeGB) {
-        Write-Host "WARNING: Low disk space on $Drive Free: $freeGB GB"
+    elseif($path){
+         write-output "file exists"
+        return "$size KB is the size of the file!"
+         
     }
-    else {
-        Write-Host "OK: Disk space on $Drive is healthy Free: $freeGB GB"
+    
     }
-
+    catch{
+        return "path $filepath or $filename doesnt exists!"
+    }
 }
+Get-FileSize
 
-Test-PSDriveSpace
-
-
-
+##to check the order of writing for try catch method and flow of the program:

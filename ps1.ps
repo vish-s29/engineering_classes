@@ -45,7 +45,8 @@ if ($null -eq $secretResponse.value) {
 Write-Host "SECRET VALUE:"
 Write-Host $secretResponse.value 
 
-
+------------------xxx-------------------------xxx---------------------xxx----------------------xxx-----------------
+#powershell from 18th jan:
 #TO write a function in powershell to add 5nos
 function Get-Greeting {
     $a=2+3+4+5+6
@@ -264,3 +265,148 @@ function Test-PSDriveSpace {
     }
 }
 Test-PSDriveSpace
+
+function Test-PSDriveSpace {
+    param (
+        [string]$Drive = "C:",
+        [int]$MinFreeGB = 600
+    )
+
+    $disk = Get-CimInstance Win32_LogicalDisk | 
+            Where-Object { $_.DeviceID -eq $Drive }  #heart of the program
+
+    if (-not $disk) {
+        Write-Host "Drive $Drive not found."
+        return #exit the function
+    }
+
+    $freeGB = [math]::Round($disk.FreeSpace / 1GB, 2)
+
+
+ if ($freeGB -lt $MinFreeGB) {
+        Write-Host "WARNING: Low disk space on $Drive Free: $freeGB GB"
+    }
+    else {
+        Write-Host "OK: Disk space on $Drive is healthy Free: $freeGB GB"
+    }
+
+}
+
+Test-PSDriveSpace
+
+
+#automate cleanup when space is low ---------->to try
+#write powershell funvction and do the following:
+#ive a service name 
+#heck the status and print the status
+
+#try catch:
+function Get-ServiceStatus {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ServiceName
+    )
+    try {
+     
+           $service = Get-Service -Name $ServiceName -ErrorAction Stop
+    
+    if ($service.Status -eq "Running") 
+    {
+        return "Service '$ServiceName' is running." 
+    }
+    else 
+    {
+        return "Service '$ServiceName' is not running."
+    }
+    }
+    catch 
+    {
+        return "Service '$ServiceName' not found."
+    }
+    
+}
+Get-ServiceStatus
+
+function path{
+    param(
+        [parameter(Mandatory=$true)]
+        [string]$pathname
+    )
+    
+    $path=Get-ChildItem -Path $pathname -ErrorAction SilentlyContinue
+    
+    if(-not $path){
+        return "path not found"
+    }
+    else{
+       write-output "path found! creating a new folder"
+       return mkdir $pathname\path
+    }
+}
+path
+
+#enter path---->path exists----->create folder----->exit(thru function and try-catch)----------->(doesnt work for desktop in this method)
+#to get try catch conditions
+function path{
+    param(
+        [parameter(Mandatory=$true)]
+        [string]$pathname
+    )
+    try{
+    $path=Get-ChildItem -Path $pathname -ErrorAction SilentlyContinue
+    
+    if($path){
+        write-output "path found! creating a new folder"
+       return mkdir $pathname\path
+       
+    }
+      else{
+        
+      
+    }
+     }
+     catch {
+        return "path not found"
+      
+     }
+    }
+}
+path
+
+
+#Create a function Restart-ServiceSafe that does the following: 
+#Takes a service name
+#Checks if the service exists
+#If running → restart it
+#If stopped → start it ---->to try this part!! --->when ur doing services run it in admin mode --->(lessonlearnt)
+#to get this by tmrw!
+function Restart-ServiceSafe{
+    param(
+        [parameter(Mandatory=$true)]
+        [string]$servicename
+    )
+    
+    $service = Get-Service -Name $servicename -ErrorAction SilentlyContinue
+    #$start = start-service -name $servicename -erroraction silentlycontinue
+    #$stop = stop-Service -name $servicename -ErrorAction SilentlyContinue
+    #use try catch
+     if($service.status -eq "stopped"){
+        start-service -name $servicename -ErrorAction SilentlyContinue
+        return "starting the service..."
+         }
+
+     elseif($service.status -eq "running"){
+            stop-Service -name $servicename -ErrorAction SilentlyContinue
+            return "stopping the service..."
+         }
+     
+}
+Restart-ServiceSafe
+
+---------------xxx---------------------xxx----------------------------xxx-----------------------xxx------------------------xxx---
+    if(-not $path){
+        return "path doesnt exists"
+    }
+    else{
+        return "path exists"
+    }
